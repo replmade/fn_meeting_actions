@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Function that creates action items from a given meeting transcript
+
+Parameters:
+  TranscriptsS3Bucket:
+    Type: String
+    Description: The S3 bucket containing the meeting transcripts
+
+  ModelId:
+    Type: String
+    Description: The name of the Bedrock foundation model
+
+Resources:
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: FnMeetingActionsRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: FnMeetingActionsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - bedrock:InvokeModel
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource: "*"
+
+  FnMeetingActions:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: FnMeetingActions
+      Handler: lambda_function.lambda_handler
+      Runtime: python3.12
+      CodeUri: lambda/
+      Description: Function that creates action items from a given meeting transcript
+      MemorySize: 128
+      Timeout: 30
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Environment:
+        Variables:
+          TRANSCRIPTS_S3_BUCKET: !Ref TranscriptsS3Bucket
+          MODEL_ID: !Ref ModelId

@@ -1,0 +1,2 @@
+aws cloudformation package --template-file template.yaml --s3-bucket <s3-bucket> --s3-prefix deployments --output-template-file packaged-template.yml --region <region> --profile <profile>
+aws cloudformation deploy --template-file packaged-template.yml --stack-name <stack-name> --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM --parameter-overrides file://parameters.json --region <region> --profile <profile>

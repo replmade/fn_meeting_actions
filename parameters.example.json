@@ -1,0 +1,10 @@
+[
+    {
+        "ParameterKey": "AWSRegion",
+        "ParameterValue": "<region>"
+    },
+    {
+        "ParameterKey": "TranscriptsS3Bucket",
+        "ParameterValue": "<bucket>"
+    }
+]
