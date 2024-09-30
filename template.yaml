@@ -13,6 +13,23 @@ Parameters:
     Default: amazon.titan-text-express-v1
 
 Resources:
+  MeetingTranscriptsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Ref TranscriptsS3Bucket
+      AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+
   LambdaExecutionRole:
     Type: AWS::IAM::Role
     Properties:
@@ -48,9 +65,20 @@ Resources:
       CodeUri: lambda/
       Description: Function that creates action items from a given meeting transcript
       MemorySize: 128
-      Timeout: 30
+      Timeout: 60
       Role: !GetAtt LambdaExecutionRole.Arn
       Environment:
         Variables:
           TRANSCRIPTS_S3_BUCKET: !Ref TranscriptsS3Bucket
           MODEL_ID: !Ref ModelId
+      Events:
+        S3PutEvent:
+          Type: S3
+          Properties:
+            Bucket: !Ref MeetingTranscriptsBucket
+            Events: s3:ObjectCreated:Put
+            Filter:
+              S3Key:
+                Rules:
+                - Name: prefix
+                  Value: transcripts/
